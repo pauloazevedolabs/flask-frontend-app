@@ -1,22 +1,19 @@
 import os
-from flask import Flask, render_template_string, request, jsonify
+from flask import Flask, render_template_string, request, redirect, url_for
 import requests
 
 app = Flask(__name__)
 
 BACKEND_BASE = "http://10.0.0.4:5000"  # VM private IP
 
+# ---------- Insert Page ----------
 @app.route("/", methods=["GET", "POST"])
-def home():
-    result = None
+def insert_page():
     message = None
-
     if request.method == "POST":
-        # Handle "Insert" form submission
         first = request.form.get("first")
         last = request.form.get("last")
         dept = request.form.get("dept")
-
         try:
             r = requests.post(
                 f"{BACKEND_BASE}/api/insert",
@@ -25,10 +22,31 @@ def home():
             )
             r.raise_for_status()
             message = "✅ Row inserted successfully!"
+            return redirect(url_for("table_page"))  # redirect after insert
         except Exception as e:
             message = f"❌ Insert failed: {e}"
 
-    # Always fetch the data table
+    html = """
+    <html>
+    <head><title>Insert Employee</title></head>
+    <body>
+      <h2>Insert Employee</h2>
+      {% if message %}<p><b>{{ message }}</b></p>{% endif %}
+      <form method="POST">
+        <input name="first" placeholder="First Name" required>
+        <input name="last" placeholder="Last Name" required>
+        <input name="dept" placeholder="Department" required>
+        <button type="submit">Insert Row</button>
+      </form>
+      <p><a href="{{ url_for('table_page') }}">View Employees Table</a></p>
+    </body>
+    </html>
+    """
+    return render_template_string(html, message=message)
+
+# ---------- Table Page ----------
+@app.route("/table")
+def table_page():
     try:
         r = requests.get(f"{BACKEND_BASE}/api/data", timeout=5)
         r.raise_for_status()
@@ -38,37 +56,15 @@ def home():
 
     html = """
     <html>
-    <head>
-        <title>Azure SQL Demo</title>
-        <style>
-          body { font-family: Arial; margin: 40px; }
-          input { margin: 4px; padding: 6px; }
-          button { padding: 6px 10px; }
-          pre { background: #f5f5f5; padding: 10px; border-radius: 4px; }
-        </style>
-    </head>
+    <head><title>Employees Table</title></head>
     <body>
-      <h2>Azure SQL Demo App</h2>
-
-      {% if message %}
-        <p><b>{{ message }}</b></p>
-      {% endif %}
-
-      <form method="POST">
-        <input name="first" placeholder="First Name" required>
-        <input name="last" placeholder="Last Name" required>
-        <input name="dept" placeholder="Department" required>
-        <button type="submit">Insert Row</button>
-      </form>
-
-      <h3>Table Data</h3>
+      <h2>Employees Table</h2>
       <pre>{{ result | tojson(indent=2) }}</pre>
+      <p><a href="{{ url_for('insert_page') }}">Insert Another Employee</a></p>
     </body>
     </html>
     """
-
-    return render_template_string(html, result=result, message=message)
-
+    return render_template_string(html, result=result)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
