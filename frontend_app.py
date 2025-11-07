@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template_string, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for
 import requests
 
 app = Flask(__name__)
@@ -22,27 +22,10 @@ def insert_page():
             )
             r.raise_for_status()
             message = "✅ Row inserted successfully!"
-            return redirect(url_for("table_page"))  # redirect after insert
+            return redirect(url_for("table_page"))
         except Exception as e:
             message = f"❌ Insert failed: {e}"
-
-    html = """
-    <html>
-    <head><title>Insert Employee</title></head>
-    <body>
-      <h2>Insert Employee</h2>
-      {% if message %}<p><b>{{ message }}</b></p>{% endif %}
-      <form method="POST">
-        <input name="first" placeholder="First Name" required>
-        <input name="last" placeholder="Last Name" required>
-        <input name="dept" placeholder="Department" required>
-        <button type="submit">Insert Row</button>
-      </form>
-      <p><a href="{{ url_for('table_page') }}">View Employees Table</a></p>
-    </body>
-    </html>
-    """
-    return render_template_string(html, message=message)
+    return render_template("insert.html", message=message)
 
 # ---------- Table Page ----------
 @app.route("/table")
@@ -50,21 +33,11 @@ def table_page():
     try:
         r = requests.get(f"{BACKEND_BASE}/api/data", timeout=5)
         r.raise_for_status()
-        result = r.json()
+        employees = r.json()
     except Exception as e:
-        result = {"error": str(e)}
+        employees = []
 
-    html = """
-    <html>
-    <head><title>Employees Table</title></head>
-    <body>
-      <h2>Employees Table</h2>
-      <pre>{{ result | tojson(indent=2) }}</pre>
-      <p><a href="{{ url_for('insert_page') }}">Insert Another Employee</a></p>
-    </body>
-    </html>
-    """
-    return render_template_string(html, result=result)
+    return render_template("table.html", employees=employees)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
