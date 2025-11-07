@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SQL Demo</title>
+  <script>
+    async function getData() {
+      const res = await fetch("http://10.0.0.4:5000/api/data");
+      const data = await res.json();
+      document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function insertData() {
+      const first = document.getElementById("first").value;
+      const last = document.getElementById("last").value;
+      const dept = document.getElementById("dept").value;
+
+      const res = await fetch("http://10.0.0.4:5000/api/insert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ FirstName: first, LastName: last, Department: dept }),
+      });
+      const data = await res.json();
+      alert(data.message);
+    }
+  </script>
+</head>
+<body>
+  <h2>SQL Demo App</h2>
+  <div>
+    <input id="first" placeholder="First Name" />
+    <input id="last" placeholder="Last Name" />
+    <input id="dept" placeholder="Department" />
+    <button onclick="insertData()">Insert Row</button>
+  </div>
+
+  <br />
+  <button onclick="getData()">Query Table</button>
+  <pre id="output"></pre>
+</body>
+</html>
