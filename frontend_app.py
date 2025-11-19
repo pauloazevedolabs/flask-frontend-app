@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import requests
 
 
-BACKEND_BASE = "http://134.149.58.75:5000"  # VM private IP
+BACKEND_BASE = "http://134.149.58.75:5000"
 
 # ---------- Insert Page ----------
 @app.route("/", methods=["GET", "POST"])
