@@ -4,7 +4,7 @@ import requests
 
 app = Flask(__name__)
 
-BACKEND_BASE = "http://10.0.0.4:5000"  # VM private IP
+BACKEND_BASE = "http://134.149.58.75:5000"  # VM private IP
 
 # ---------- Insert Page ----------
 @app.route("/", methods=["GET", "POST"])
